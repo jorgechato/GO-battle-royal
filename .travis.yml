@@ -22,7 +22,7 @@ jobs:
       go:
         - 1.10.x
         - 1.9.x
-      go_import_path: github.com/jorgechato/acictl
+      go_import_path: github.com/jorgechato/battle-royale
       before_script:
         - make install_dep
         - dep ensure
@@ -36,13 +36,13 @@ jobs:
         - sonar-scanner
     - stage: deploy
       go: 1.10.x
-      go_import_path: github.com/jorgechato/acictl
+      go_import_path: github.com/jorgechato/battle-royale
       install: skip
       script: skip
       deploy:
         - provider: releases
           skip_cleanup: true
           on:
-            repo: jorgechato/acictl
+            repo: jorgechato/battle-royale
             branch: master
             tags: true
