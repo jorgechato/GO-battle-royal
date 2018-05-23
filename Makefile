@@ -23,7 +23,7 @@ linter:
 	gometalinter.v2 --checkstyle > report.xml
 
 cov:
-	./lazy/coverage.sh
+	./deploy/lazy/coverage.sh
 
 unit:
 	go test -v ./... | go-junit-report > test.xml

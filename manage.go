@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jorgechato/battle-royale/battle-royale/app"
-	"github.com/jorgechato/battle-royale/battle-royale/help"
+	"github.com/jorgechato/battle-royale/battleroyale"
+	"github.com/jorgechato/battle-royale/help"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 func main() {
 	r := mux.NewRouter()
 
-	app.URLPatterns(r.PathPrefix("/").Subrouter())
+	battleroyale.URLPatterns(r.PathPrefix("/").Subrouter())
 	help.URLPatterns(r.PathPrefix("/help").Subrouter())
 
 	r.Host(host)
