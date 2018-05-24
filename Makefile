@@ -1,7 +1,9 @@
-MAIN_VERSION:=$(shell git describe --abbrev=0 --tags || echo "0.1")
+MAIN_VERSION:=$(shell git describe --always --abbrev=0 --tags || echo "0.1")
+COMMIT:=$()
 VERSION:=${MAIN_VERSION}\#$(shell git log -n 1 --pretty=format:"%h")
+AUTHOR:=$(shell git log -n 1 --pretty=format:"%an")
 PACKAGES:=$(shell go list ./... | sed -n '1!p' | grep -v vendor)
-LDFLAGS:=-ldflags "-X github.com/jorgechato/battle-royale.Version=${VERSION}"
+LDFLAGS:=-ldflags "-X main.version=${MAIN_VERSION} -X main.author=${AUTHOR} -X main.tag=${VERSION}"
 
 default: test build
 
@@ -24,7 +26,7 @@ run:
 	go run ${LDFLAGS} manage.go
 
 linter:
-	gometalinter.v2 --exclude=version.go --checkstyle > report.xml
+	gometalinter.v2 --checkstyle > report.xml
 
 cov:
 	set -e

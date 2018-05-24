@@ -1,4 +1,4 @@
-package battleroyale
+package health
 
 import (
 	"github.com/gorilla/mux"
@@ -6,5 +6,5 @@ import (
 
 //URLPatterns package routers
 func URLPatterns(router *mux.Router) {
-	router.HandleFunc("/", homeController).Methods("GET").Name("Home")
+	router.HandleFunc("", getHelpCtrl).Methods("GET").Name("HelpHome")
 }
