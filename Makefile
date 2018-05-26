@@ -2,7 +2,6 @@ MAIN_VERSION:=$(shell git describe --always --abbrev=0 --tags || echo "0.1")
 COMMIT:=$()
 VERSION:=${MAIN_VERSION}\#$(shell git log -n 1 --pretty=format:"%h")
 AUTHOR:=$(shell git log -n 1 --pretty=format:"%an")
-PACKAGES:=$(shell go list ./... | sed -n '1!p' | grep -v vendor)
 GOENV:=CGO_ENABLED=0 GOOS=linux
 LDFLAGS:=-ldflags "-X main.version=${MAIN_VERSION} -X main.author=${AUTHOR} -X main.tag=${VERSION}"
 
@@ -34,9 +33,7 @@ linter:
 	gometalinter.v2 --exclude=manage.go --checkstyle > report.xml
 
 cov:
-	set -e
-	$(foreach pkg,$(PACKAGES), \
-    	go test -coverprofile=coverage.out ${pkg};)
+	go test -coverprofile=coverage.out ./...
 
 unit:
 	go test -v ./... | go-junit-report > test.xml
