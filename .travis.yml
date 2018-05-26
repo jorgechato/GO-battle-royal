@@ -35,7 +35,11 @@ jobs:
     - stage: deploy
       go: 1.10.x
       go_import_path: github.com/jorgechato/battle-royale
-      install: skip
+      before_install:
+        - make install_dep
+        - dep ensure
+      install:
+        - make build
       script: skip
       deploy:
         - provider: releases
