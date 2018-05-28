@@ -4,18 +4,10 @@ dist: trusty
 notifications:
   email: false
 
-env:
-  - IMAGE_NAME=battle
-
 stages:
-  - test
+  - name: test
   - name: deploy
-    if: branch = master
-  - name: promote
-    if: branch = master
-
-services:
-  - docker
+    if: branch = master OR tag =~ ^[0-9]+[.]{1}[0-9]+
 
 jobs:
   include:
@@ -39,18 +31,21 @@ jobs:
 
     - stage: deploy
       go: 1.10.x
-      before_script:
+      env: IMAGE_NAME=battle
+      services:
+        - docker
+      before_install:
         - make install_dep
         - dep ensure
-      script:
+      install:
         - make deploy
-      after_script:
+      after_install:
         - docker images
-      before_deploy:
+      before_script:
         - version="$(git describe --always --abbrev=0 --tags || echo '0.1')"
         - docker login -u "$QUAY_USER" -p "$QUAY_PASS" quay.io
-        - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
-        - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version}"
-      deploy:
-        - provider: script
-          script: docker push "quay.io/${QUAY_USER}/${IMAGE_NAME}:latest" && docker push "quay.io/${QUAY_USER}/${IMAGE_NAME}:${version}"
+        - docker tag "$IMAGE_NAME" "${QUAY_BASE}/${IMAGE_NAME}:latest"
+        - docker tag "$IMAGE_NAME" "${QUAY_BASE}/${IMAGE_NAME}:${version}"
+      script:
+        - docker push "${QUAY_BASE}/${IMAGE_NAME}:latest"
+        - docker push "${QUAY_BASE}/${IMAGE_NAME}:${version}"
