@@ -6,5 +6,5 @@ import (
 
 //URLPatterns package routers
 func URLPatterns(router *mux.Router) {
-	router.HandleFunc("/", homeController).Methods("GET").Name("Home")
+	router.HandleFunc("/", homeCtrl).Methods("GET").Name("Home")
 }

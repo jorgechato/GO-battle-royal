@@ -1,20 +1,21 @@
 language: go
-sudo: false
+sudo: true
+dist: trusty
 notifications:
   email: false
 
-addons:
-  sonarcloud:
-    organization: "jorgechato-github"
-    token:
-      secure: $SONAR_TOKEN
+env:
+  - IMAGE_NAME=battle
 
 stages:
   - test
   - name: deploy
     if: branch = master
+  - name: promote
+    if: branch = master
 
-before_script:
+services:
+  - docker
 
 jobs:
   include:
@@ -22,29 +23,34 @@ jobs:
       go:
         - 1.10.x
         - 1.9.x
-      go_import_path: github.com/jorgechato/battle-royale
+      addons:
+        sonarcloud:
+          organization: "jorgechato-github"
+          token:
+            secure: $SONAR_TOKEN
       before_script:
         - make install_dep
         - dep ensure
         - make install_unit
         - make install_dev
-      script:
-        - make test
+      script: make test
       after_script:
         - sonar-scanner
+
     - stage: deploy
       go: 1.10.x
-      go_import_path: github.com/jorgechato/battle-royale
-      before_install:
+      before_script:
         - make install_dep
         - dep ensure
-      install:
-        - make build
-      script: skip
+      script:
+        - make deploy
+      after_script:
+        - docker images
+      before_deploy:
+        - version="$(git describe --always --abbrev=0 --tags || echo '0.1')"
+        - docker login -u "$QUAY_USER" -p "$QUAY_PASS" quay.io
+        - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
+        - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version}"
       deploy:
-        - provider: releases
-          skip_cleanup: true
-          on:
-            repo: jorgechato/battle-royale
-            branch: master
-            tags: true
+        - provider: script
+          script: docker push "quay.io/${QUAY_USER}/${IMAGE_NAME}:latest" && docker push "quay.io/${QUAY_USER}/${IMAGE_NAME}:${version}"

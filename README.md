@@ -7,4 +7,12 @@
 
 Battle royal between different languages in the backend side [GO vs JS vs Java vs Kotlin vs Vertx]
 
+In these repository you will find a backend written in GO with [mux](https://github.com/gorilla/mux) as a powerful URL router and dispatcher.
+In the following list you will find my colleagues' repos:
+
+- [TS with nestJS](https://github.com/RecuencoJones/nestjs-perf-test) written by @RecuencoJones
+
+## Performance test
+
+## Metrics
 

@@ -1,11 +1,13 @@
 package battleroyale
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 )
 
-// HomeHandler is a Hello World view
-func homeController(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hi there!, You are in ", r.URL.Path)
+func homeCtrl(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	io.WriteString(w, `{"alive": true}`)
 }
