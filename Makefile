@@ -47,7 +47,7 @@ build-deploy:
 build-docker:
 	docker build -t battle .
 
-docker-run:
+run-docker:
 	docker run -p 8080:8080 --name battle battle
 
 clean-deploy: clean
