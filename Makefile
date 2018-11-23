@@ -1,55 +1,52 @@
-MAIN_VERSION:=$(shell git describe --always --abbrev=0 --tags || echo "0.1")
-COMMIT:=$()
-VERSION:=${MAIN_VERSION}\#$(shell git log -n 1 --pretty=format:"%h")
-AUTHOR:=$(shell git log -n 1 --pretty=format:"%an")
-GOENV:=CGO_ENABLED=0 GOOS=linux
-LDFLAGS:=-ldflags "-X main.version=${MAIN_VERSION} -X main.author=${AUTHOR} -X main.tag=${VERSION}"
+SHELL:="/bin/bash"
+MAIN_VERSION:=$(shell git describe --always --abbrev=7 --tags || echo "0.1")
+AUTHOR:=$(shell git --no-pager show -s --format='%an' ${MAIN_VERSION})
+PLATFORM:=$(shell go env GOOS)
+ARCH:=$(shell go env GOARCH)
+GOPATH:=$(shell go env GOPATH)
+GOBIN:=$(GOPATH)/bin
+LDFLAGS:="-X github.com/jorgechato/api.jorgechato.com/utils.VERSION=${MAIN_VERSION} -X github.com/jorgechato/api.jorgechato.com/utils.AUTHOR=${AUTHOR}"
+M = $(shell printf "\033[34;1m▶\033[0m")
 
-.PHONY: deploy
 
-default: test build
+.PHONY: build clean dep schema help default server setup vendor release test
 
-test: unit cov linter
+default: help
 
-deploy: clean build-deploy build-docker
+vendor: ; $(info $(M) Download dev dependencies...)
+	go get github.com/oxequa/realize
+	go get -u github.com/tebeka/go2xunit
 
-install_dep:
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+setup: ; $(info $(M) Fetching github.com/golang/dep...)
+	go get github.com/golang/dep/cmd/dep
 
-install_dev:
-	go get -u gopkg.in/alecthomas/gometalinter.v2
-	gometalinter.v2 --install
+dep: setup ; $(info $(M) Ensuring vendored dependencies are up-to-date...) ## Download dependencies
+	dep ensure -v -vendor-only
 
-install_unit:
-	go get -u github.com/jstemmer/go-junit-report
-
-build:
-	go build ${LDFLAGS} -a -o server manage.go
+build: dep ; $(info $(M) Building project...) ## Build server binary
+	go build -ldflags ${LDFLAGS} -a -o acictl main.go
 
 run:
-	go run ${LDFLAGS} manage.go
+	go run -ldflags ${LDFLAGS} main.go
 
-linter:
-	gometalinter.v2 --exclude=manage.go --checkstyle > report.xml
+clean: ; $(info $(M) Removing generated files... ) ## Clean schema bind data
+	rm -rf *.out *.xml release *.output
 
-cov:
-	go test -coverprofile=coverage.out ./...
+release: ; $(info $(M) Release project...) ## Release binary
+	./lazy/build.sh ${LDFLAGS}
 
-unit:
-	go test -v ./... | go-junit-report > test.xml
+test: vendor ; $(info $(M) Run tests...) ## Start unit tests
+	go test -race -cover -v -coverprofile=coverage.out ./... > test.output
+	cat test.output | go2xunit -output tests.xml
 
-clean:
-	rm -rf server *.out *.xml
+server: vendor ; $(info $(M) Starting development server...) ## Start development server
+	realize start
 
-build-deploy:
-	${GOENV} go build -a -installsuffix cgo ${LDFLAGS} -o server .
+unit: vendor ; $(info $(M) Run unit tests...) ## Start unit tests
+	go list $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=60s -parallel=4
 
-build-docker:
-	docker build -t battle .
+fmtcheck:
+	@sh -c "'$(CURDIR)/lazy/gofmtcheck.sh'"
 
-run-docker:
-	docker run -p 8080:8080 --name battle battle
-
-clean-deploy: clean
-	docker rmi -f battle
-	docker rm battle
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n",

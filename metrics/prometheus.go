@@ -1,10 +1,6 @@
 package metrics
 
-import (
-	"os"
-
-	"github.com/prometheus/client_golang/prometheus"
-)
+import "github.com/prometheus/client_golang/prometheus"
 
 var (
 	RampUpTime = prometheus.NewGauge(
@@ -21,16 +17,10 @@ var (
 		},
 		[]string{"device"},
 	)
-
-	CPUMetrics = prometheus.NewProcessCollector(
-		os.Getpid(),
-		"test",
-	)
 )
 
 func init() {
 	// Metrics have to be registered to be exposed:
-	prometheus.MustRegister(CPUMetrics)
 	prometheus.MustRegister(RampUpTime)
 	prometheus.MustRegister(hdFailures)
 

@@ -1,0 +1,29 @@
+settings:
+  legacy:
+    force: true
+    interval: 100ms
+schema:
+- name: battle-royal
+  path: .
+  commands:
+    clean:
+      status: true
+    fmt:
+      status: true
+    test:
+      status: true
+    run:
+      status: true
+  watcher:
+    extensions:
+    - go
+    - lock
+    - toml
+    - graphql
+    paths:
+    - /
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
+    - out
